@@ -11,6 +11,9 @@ import java.util.List;
 @Repository
 @EnableJpaRepositories
 public interface NewsImageRepository extends JpaRepository<NewsImage, Long> {
-    @Query("SELECT ni.imageUrl FROM NewsImage ni WHERE ni.news.id = :id")
+    @Query("SELECT ni.imageUrl FROM NewsImage ni WHERE ni.news.id = :id and ni.deletedAt IS NULL")
     List<String> findImageUrlByListingId (Long id);
+
+    @Query("SELECT ni FROM NewsImage ni WHERE ni.news.id = :id and ni.deletedAt IS NULL")
+    List<NewsImage> findByNewsIdAndNotDeleted (Long id);
 }

@@ -1,7 +1,5 @@
 package com.thangcayEP.ElectricVehicles.model.payload.response;
 
-import com.thangcayEP.ElectricVehicles.model.entity.Wallet;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

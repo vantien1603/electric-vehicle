@@ -24,5 +24,5 @@ public class NewsImage {
 
    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
 }

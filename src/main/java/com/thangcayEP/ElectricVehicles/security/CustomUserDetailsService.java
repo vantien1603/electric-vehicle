@@ -1,6 +1,8 @@
 package com.thangcayEP.ElectricVehicles.security;
+
 import com.thangcayEP.ElectricVehicles.model.entity.User;
 import com.thangcayEP.ElectricVehicles.repositories.UserRepository;
+import com.thangcayEP.ElectricVehicles.utils.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -28,6 +30,12 @@ public class CustomUserDetailsService implements UserDetailsService {
         Set<GrantedAuthority> authorities = new HashSet<>();
         authorities.add(authority);
 
-        return new org.springframework.security.core.userdetails.User(email, user.getPassword(), authorities);
+//        return new org.springframework.security.core.userdetails.User(user.getId(),email, user.getPassword(), authorities);
+        return new CustomUserDetails(
+                user.getId(),
+                user.getEmail(),
+                user.getPassword(),
+                authorities
+        );
     }
 }

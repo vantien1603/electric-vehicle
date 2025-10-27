@@ -26,7 +26,9 @@ public class Favorite {
     @JoinColumn(name = "listing_id")
     private News news;
 
+    @Column(nullable = false)
+    private String status;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }

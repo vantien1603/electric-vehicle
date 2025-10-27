@@ -1,4 +1,4 @@
-package com.bumble.pethotel.configs;
+package com.thangcayEP.ElectricVehicles.configs;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +17,7 @@ public class PayOSConfig {
     private String checksumKey;
     @Bean
     public PayOS payOS() {
+        System.out.println("client: "+clientId +"/api: "+ apiKey +"/ sum: "+ checksumKey);
         return new PayOS(clientId, apiKey, checksumKey);
     }
 }

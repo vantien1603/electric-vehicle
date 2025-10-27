@@ -1,5 +1,6 @@
 package com.thangcayEP.ElectricVehicles.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,22 +21,37 @@ public class News {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false) @JoinColumn(name = "user_id")
+    @ManyToOne(optional = false)
+
+//    @JsonIgnore
+    @JoinColumn(name = "user_id")
     private User user;
+
+    private String title;
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "category_id")
+    private Categories category;
 
     private BigDecimal price;
 
     private String status = "PENDING"; // APPROVED, SOLD, HIDDEN, DELETED
 
-    private String vehicleType;
+    private String contactPhone;
+
+
+    private String vehicleStatus;
     private String vehicleBrand;
     private String vehicleModel;
     private Integer vehicleYear;
-    private Long vehicleMileage;
+    private String color;
     private String vehicleBatteryCapacity;
+    private Long topSpeed;
+    private Long distanceTraveled;
+    private String location;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

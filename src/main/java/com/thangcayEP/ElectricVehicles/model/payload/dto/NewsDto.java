@@ -18,15 +18,20 @@ import java.util.List;
 public class NewsDto {
     private Long id;
     private UserDto userDto;
+    private String title;
     private String description;
     private BigDecimal price;
     private String status; // APPROVED, SOLD, HIDDEN, DELETED
-    private String vehicleType;
+    private String contactPhone;
+    private Long categoryId;
+    private String vehicleStatus;
     private String vehicleBrand;
     private String vehicleModel;
     private Integer vehicleYear;
-    private Long vehicleMileage;
+    private String color;
     private String vehicleBatteryCapacity;
+    private Long topSpeed;
+    private Long distanceTraveled;
     private LocalDateTime createdAt;
     private List<String> imageUrls;
 }

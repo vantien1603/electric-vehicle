@@ -1,9 +1,12 @@
 package com.thangcayEP.ElectricVehicles.model.payload.dto;
 
+import com.thangcayEP.ElectricVehicles.model.entity.Role;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -16,5 +19,6 @@ public class UserDto {
     private String avatarUrl;
     private String address;
     private String phone;
-    private Long roleId;
+    private Role role;
+    private LocalDateTime createAt;
 }

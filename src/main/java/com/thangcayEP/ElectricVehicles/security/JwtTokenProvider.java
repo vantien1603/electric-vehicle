@@ -38,6 +38,8 @@ public class JwtTokenProvider {
         String username = authentication.getName();
         String userId = user.getId().toString();
         String role = user.getRole().getName();
+        String avatarUrl = user.getAvatarUrl();
+        String fullName = user.getName();
 
         Date currentDate = new Date();
         Date expirationDate = new Date(currentDate.getTime() + expiration);
@@ -46,7 +48,9 @@ public class JwtTokenProvider {
                 .setIssuedAt(currentDate)
                 .setExpiration(expirationDate)
                 .claim("userId", userId)
+                .claim("fullName", fullName)
                 .claim("roleName", role )
+                .claim("avatarUrl",avatarUrl)
                 .signWith(SignatureAlgorithm.HS384 ,key())
                 .compact();
     }

@@ -69,14 +69,18 @@ public class SecurityConfig {
         http.csrf((csrf) -> csrf.disable())
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests((authorize) ->
-                        authorize.requestMatchers(HttpMethod.GET, "/api/v1/**").permitAll()
-                                .requestMatchers("/api/v1/auth/**").permitAll()
+                        authorize.requestMatchers(HttpMethod.GET, "/api/v1/news").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/news/**").permitAll()
+                                .requestMatchers(HttpMethod.GET,"/api/v1/user").permitAll()
+                                .requestMatchers("/api/v1/no-auth/**").permitAll()
                                 .requestMatchers("/no-auth/**").permitAll()
                                 .requestMatchers("/swagger-ui/**").permitAll()
                                 .requestMatchers("/v3/api-docs/**").permitAll()
                                 .requestMatchers("/swagger-ui.html").permitAll()
-                                .requestMatchers("/api/v1/paypal/**").permitAll()
-
+                                .requestMatchers("/success").permitAll()
+                                .requestMatchers("/cancel").permitAll()
+                                .requestMatchers("/api/v1/payment/payos_webhook").permitAll()
+                                .requestMatchers("/api/v1/payment/confirm-webhook").permitAll()
 
                                 .anyRequest().authenticated()
                 ).exceptionHandling((exception) -> exception
@@ -100,6 +104,7 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowCredentials(true);
         configuration.setAllowedOriginPatterns(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));

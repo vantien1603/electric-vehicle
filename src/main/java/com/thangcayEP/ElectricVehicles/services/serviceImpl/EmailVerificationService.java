@@ -24,7 +24,7 @@ public class EmailVerificationService {
         String code = CodeGenerator.generateVerificationCode();
         user.setVerificationCode(code);
         user.setVerificationCodeExpiry(LocalDateTime.now().plusMinutes(10)); // Code valid for 10 minutes
-
+        userRepository.save(user);
         // Send email with the verification code
         sendEmailVerify(user.getEmail(), code);
     }
