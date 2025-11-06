@@ -22,22 +22,36 @@ public class FavoriteController {
     FavoriteService favoriteService;
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/{id}")
+    @GetMapping
     public ResponseEntity<?> getFavoriteByUserId(@AuthenticationPrincipal CustomUserDetails customUserDetails,
                                                  @RequestParam(value = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
                                                  @RequestParam(value = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
                                                  @RequestParam(value = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY, required = false) String sortBy,
                                                  @RequestParam(value = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir) {
-        System.out.printf("uqiuhi asd" + customUserDetails.getId() + customUserDetails.getUsername());
         ListFavoriteResponse response = favoriteService.getFavoriteByUser(customUserDetails.getId(), pageNo, pageSize, sortBy, sortDir);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/{newsId}")
-    public ResponseEntity<?> toggleFavorite(@AuthenticationPrincipal CustomUserDetails customUserDetails,
-                                            @PathVariable Long newsId) {
-        String result = favoriteService.toggleFavorite(customUserDetails.getId(), newsId);
-        return ResponseEntity.ok(result);
+    public ResponseEntity<?> addToFavorite(@AuthenticationPrincipal CustomUserDetails customUserDetails,
+                                           @PathVariable Long newsId) {
+        favoriteService.addNewsToFavorite(customUserDetails.getId(), newsId);
+        return ResponseEntity.ok("Added news to wishlist");
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping("/{newsId}")
+    public ResponseEntity<?> removeFromFavorite(@AuthenticationPrincipal CustomUserDetails customUserDetails,
+                                                @PathVariable Long newsId) {
+        favoriteService.removeNewsFromFavorite(customUserDetails.getId(), newsId);
+        return ResponseEntity.ok("Removed news from wishlist");
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping("/clear")
+    public ResponseEntity<?> clearFavorite(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        favoriteService.clearWishlist(customUserDetails.getId());
+        return ResponseEntity.ok("Clear wishlist");
     }
 }

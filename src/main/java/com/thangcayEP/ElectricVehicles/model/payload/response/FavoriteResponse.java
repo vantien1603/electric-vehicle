@@ -1,6 +1,7 @@
 package com.thangcayEP.ElectricVehicles.model.payload.response;
 
 import com.thangcayEP.ElectricVehicles.model.entity.News;
+import com.thangcayEP.ElectricVehicles.model.payload.dto.NewsDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FavoriteResponse {
-    private News news;
-    private LocalDateTime createAt;
+    private NewsDto news;
+    private LocalDateTime createdAt;
 }

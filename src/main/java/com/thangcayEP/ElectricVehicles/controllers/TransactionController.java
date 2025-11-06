@@ -20,21 +20,34 @@ import org.springframework.web.bind.annotation.*;
 public class TransactionController {
     @Autowired
     TransactionService transactionService;
+
     @SecurityRequirement(name = "Bearer Authentication")
     @PostMapping
-    public ResponseEntity<?> createTrans (@Valid @RequestBody TransactionRequest transactionRequest){
+    public ResponseEntity<?> createTrans(@Valid @RequestBody TransactionRequest transactionRequest) {
         TransactionResponse response = transactionService.createOrder(transactionRequest);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping
-    public ResponseEntity<?> getMyTransaction (@AuthenticationPrincipal CustomUserDetails userDetails,
-                                        @RequestParam(value = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int pageNo,
-                                        @RequestParam(value = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int pageSize,
-                                        @RequestParam(value = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY) String sortBy,
-                                        @RequestParam(value = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION) String sortDir){
-        ListTransactionResponse response = transactionService.getByUser(userDetails.getId(), pageNo, pageSize, sortBy, sortDir);
-        return  new ResponseEntity<>(response, HttpStatus.OK);
+    @GetMapping("/buyer")
+    public ResponseEntity<?> getMyBuyTransaction(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                              @RequestParam(value = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int pageNo,
+                                              @RequestParam(value = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int pageSize,
+                                              @RequestParam(value = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY) String sortBy,
+                                              @RequestParam(value = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION) String sortDir,
+                                              @RequestParam(value = "status", required = false) String status) {
+        ListTransactionResponse response = transactionService.getForBuyer(userDetails.getId(), pageNo, pageSize, sortBy, sortDir, status);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/seller")
+    public ResponseEntity<?> getMySellTransaction(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                              @RequestParam(value = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int pageNo,
+                                              @RequestParam(value = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int pageSize,
+                                              @RequestParam(value = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY) String sortBy,
+                                              @RequestParam(value = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION) String sortDir,
+                                              @RequestParam(value = "status", required = false) String status) {
+        ListTransactionResponse response = transactionService.getForSeller(userDetails.getId(), pageNo, pageSize, sortBy, sortDir, status);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
 }

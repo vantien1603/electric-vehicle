@@ -31,8 +31,8 @@ public class EmailVerificationService {
 
 
     private void sendEmailVerify(String recipientEmail, String verificationCode) {
-        String subject = "Email Verification Code";
-        String message = "Your verification code is: " + verificationCode;
+        String subject = "Xác minh tài khoản EcoMarket";
+        String message = "Mã xác minh của bạn là: " + verificationCode;
 
         SimpleMailMessage email = new SimpleMailMessage();
         email.setFrom("namcam1590@gmail.com");
@@ -55,8 +55,8 @@ public class EmailVerificationService {
 
 
     private void sendEmailReset(String recipientEmail, String resetToken) {
-        String subject = "Password Reset Request";
-        String message = "To reset your password, use the following token: " + resetToken;
+        String subject = "Yêu cầu đặt lại mật khẩu";
+        String message = "Mã xác minh để đặt lại mật khẩu: " + resetToken;
 
         SimpleMailMessage email = new SimpleMailMessage();
         email.setFrom("namcam1590@gmail.com");

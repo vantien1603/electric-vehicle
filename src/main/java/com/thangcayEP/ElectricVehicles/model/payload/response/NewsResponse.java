@@ -23,6 +23,7 @@ public class NewsResponse {
     private String description;
     private BigDecimal price;
     private String status; // APPROVED, SOLD, HIDDEN, DELETED
+    private String reason;
     private CategoryDto category;
     private String contactPhone;
     private String vehicleStatus;

@@ -12,7 +12,19 @@ import org.springframework.stereotype.Repository;
 @Repository
 @EnableJpaRepositories
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
-    @Query("SELECT n FROM Transaction n WHERE n.id = :id")
-    Page<Transaction> findByUserId(@Param("id") Long id, Pageable pageable);
+    @Query("""
+                SELECT n FROM Transaction n
+                WHERE  n.buyer.id = :id
+                AND (:status IS NULL OR n.status LIKE CONCAT('%', :status, '%'))
+            """)
+    Page<Transaction> findByBuyerId(@Param("id") Long id, @Param("status") String status, Pageable pageable);
+
+    @Query("""
+                SELECT n FROM Transaction n
+                WHERE n.seller.id = :id
+                AND (:status IS NULL OR n.status LIKE CONCAT('%', :status, '%'))
+            """)
+    Page<Transaction> findBySellerId(@Param("id") Long id, @Param("status") String status, Pageable pageable);
+
 
 }

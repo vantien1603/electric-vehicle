@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -21,11 +22,13 @@ public class TransactionResponse {
     private BigDecimal price;
     private BigDecimal commissionFee;
     private BigDecimal netAmount;
-    private String recipientName;     // Họ và tên người nhận
-    private String recipientPhone;    // SĐT người nhận
-    private String address;           // Số nhà, đường
-    private String ward;              // Phường/Xã
-    private String district;          // Quận/Huyện
-    private String city;              // Tỉnh/Thành phố
+    private String status;
+    private String recipientName;
+    private String recipientPhone;
+    private String address;
+    private String ward;
+    private String district;
+    private String city;
     private String note;
+    private LocalDateTime createdAt;
 }

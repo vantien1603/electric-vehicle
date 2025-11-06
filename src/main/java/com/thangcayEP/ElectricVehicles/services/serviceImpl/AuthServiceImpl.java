@@ -19,8 +19,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -57,36 +56,37 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthenticationResponse login(LoginDto loginDto) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword())
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword()));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        User user = userRepository.findByEmail(loginDto.getEmail())
-                .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "User not found"));
-        if (!user.isEmailVerified()) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "Email is not verified. Please verify your email.");
+            User user = userRepository.findByEmail(loginDto.getEmail())
+                    .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "User not found"));
+
+            if (!user.isEmailVerified()) {
+                throw new ApiException(HttpStatus.FORBIDDEN, "Email is not verified. Please verify your email.");
+            }
+
+            if ("DELETED".equals(user.getStatus())) {
+                throw new ApiException(HttpStatus.FORBIDDEN, "Your account has been deleted.");
+            }
+
+            String accessToken = jwtTokenProvider.generateAccessToken(authentication, user);
+            String refreshToken = jwtTokenProvider.generateRefreshToken(authentication, user);
+
+            return AuthenticationResponse.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .build();
+
+        } catch (BadCredentialsException e) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "Email hoặc mật khẩu không đúng");
+        } catch (LockedException e) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "Tài khoản đã bị khóa");
         }
-        if (user.getStatus().equals("DELETED")){
-            throw new ApiException(HttpStatus.FORBIDDEN, "Your account has been deleted.");
-        }
-        String accessToken = jwtTokenProvider.generateAccessToken(authentication, user);
-        String refreshToken = jwtTokenProvider.generateRefreshToken(authentication, user);
-
-//        String fullName = user.getName();
-
-//        revokeRefreshToken(accessToken);
-//        RefreshToken savedRefreshToken = saveUserRefreshToken(refreshToken);
-//
-//        revokeAllUserAccessTokens(user);
-//        saveUserAccessToken(user, accessToken, savedRefreshToken);
-
-        return AuthenticationResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-//                .fullName(fullName)
-                .build();
     }
-
 
 
     @Override
@@ -112,7 +112,7 @@ public class AuthServiceImpl implements AuthService {
 
         User user1 = userRepository.save(user);
 
-        walletService.createWallet(user.getId(),user.getEmail());
+        walletService.createWallet(user.getId(), user.getEmail());
 
         return "User registered successfully! Please check your email for the verification code.";
     }
@@ -126,7 +126,8 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public String verifyEmailCode(String email, String code) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found with this email"));
-        if(user.getVerificationCode()==null || !user.getVerificationCode().equals(code)) throw new ApiException(HttpStatus.BAD_REQUEST, "Verification code is invalid");
+        if (user.getVerificationCode() == null || !user.getVerificationCode().equals(code))
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Verification code is invalid");
         if (user.getVerificationCodeExpiry().isBefore(LocalDateTime.now())) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Verification code has expired.");
         }
@@ -141,9 +142,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String resendVerificationCode(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(()-> new ApiException(HttpStatus.NOT_FOUND, "User not found with this email"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found with this email"));
         if (user.isEmailVerified()) {
-            throw new ApiException(HttpStatus.BAD_REQUEST,"Email is already verified.");
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Email is already verified.");
         }
         emailVerificationService.sendVerificationCode(user);
         return "Email verification code has been resent";
@@ -151,19 +152,19 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String forgotPassword(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(()-> new ApiException(HttpStatus.NOT_FOUND, "User not fount with this email"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not fount with this email"));
         emailVerificationService.sendPasswordResetToken(user);
         return "Password reset token sent to your email";
     }
 
     @Override
     public String resetPassword(NewPasswordRequest newPasswordRequest) {
-        User user = userRepository.findByEmail(newPasswordRequest.getEmail()).orElseThrow(()-> new ApiException(HttpStatus.NOT_FOUND, "User not fount with this email"));
+        User user = userRepository.findByEmail(newPasswordRequest.getEmail()).orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not fount with this email"));
         if (user.getResetPasswordExpiry().isBefore(LocalDateTime.now())) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Password reset token has expired.");
         }
-        if(!newPasswordRequest.getToken().equals(user.getResetPasswordToken())) {
-            throw new ApiException(HttpStatus.BAD_REQUEST,"Token reset password is not correct");
+        if (!newPasswordRequest.getToken().equals(user.getResetPasswordToken())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Token reset password is not correct");
         }
         user.setPassword(passwordEncoder.encode(newPasswordRequest.getNewPassword()));
         user.setResetPasswordToken(null);
