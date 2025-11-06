@@ -23,11 +23,8 @@ public class Favorite {
     private User user;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "listing_id")
+    @JoinColumn(name = "news_id")
     private News news;
-
-    @Column(nullable = false)
-    private String status;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

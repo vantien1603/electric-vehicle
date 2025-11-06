@@ -81,6 +81,7 @@ public class SecurityConfig {
                                 .requestMatchers("/cancel").permitAll()
                                 .requestMatchers("/api/v1/payment/payos_webhook").permitAll()
                                 .requestMatchers("/api/v1/payment/confirm-webhook").permitAll()
+                                .requestMatchers("/ws/**", "/ws").permitAll()
 
                                 .anyRequest().authenticated()
                 ).exceptionHandling((exception) -> exception

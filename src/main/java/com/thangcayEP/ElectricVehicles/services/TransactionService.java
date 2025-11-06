@@ -8,5 +8,7 @@ import java.math.BigDecimal;
 
 public interface TransactionService {
     TransactionResponse createOrder (TransactionRequest transactionRequest);
-    ListTransactionResponse getByUser (Long userId, int pageNo, int pageSize, String sortBy, String sortDir);
+    ListTransactionResponse getForBuyer (Long userId, int pageNo, int pageSize, String sortBy, String sortDir, String status);
+    ListTransactionResponse getForSeller (Long userId, int pageNo, int pageSize, String sortBy, String sortDir, String status);
+
 }

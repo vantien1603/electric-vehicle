@@ -39,6 +39,7 @@ public class News {
     private BigDecimal price;
 
     private String status = "PENDING"; // APPROVED, SOLD, HIDDEN, DELETED
+    private String reason;
 
     private String contactPhone;
 

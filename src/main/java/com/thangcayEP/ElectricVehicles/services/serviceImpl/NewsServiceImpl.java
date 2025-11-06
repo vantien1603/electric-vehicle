@@ -6,6 +6,7 @@ import com.thangcayEP.ElectricVehicles.model.entity.News;
 import com.thangcayEP.ElectricVehicles.model.entity.NewsImage;
 import com.thangcayEP.ElectricVehicles.model.entity.User;
 import com.thangcayEP.ElectricVehicles.model.exception.ApiException;
+import com.thangcayEP.ElectricVehicles.model.payload.request.NewsApproveRequest;
 import com.thangcayEP.ElectricVehicles.model.payload.request.NewsRequest;
 import com.thangcayEP.ElectricVehicles.model.payload.response.ListNewsResponse;
 import com.thangcayEP.ElectricVehicles.model.payload.response.NewsResponse;
@@ -30,9 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,7 +54,7 @@ public class NewsServiceImpl implements NewsService {
 
     @Override
     public NewsResponse createNews(Long userId, NewsRequest newsRequest) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Can not find user with this id"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Can not found user with id: "+userId));
         News news = new News();
         news.setUser(user);
         news.setTitle(newsRequest.getTitle());
@@ -63,7 +62,7 @@ public class NewsServiceImpl implements NewsService {
         news.setPrice(newsRequest.getPrice());
         news.setCreatedAt(LocalDateTime.now());
         news.setStatus("PENDING");
-        Categories cate = categoriesRepository.findById(newsRequest.getCategoryId()).orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Can not find category with this id"));
+        Categories cate = categoriesRepository.findById(newsRequest.getCategoryId()).orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Can not found category with id: "+newsRequest.getCategoryId()));
         news.setCategory(cate);
         if (cate.getId() == 1) {
             news.setColor(null);
@@ -104,7 +103,7 @@ public class NewsServiceImpl implements NewsService {
                 imageUrls.add(url);
             }
         } else {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "The news must be include images");
+            throw new ApiException(HttpStatus.BAD_REQUEST, "News must be include images");
         }
         NewsResponse response = modelMapper.map(news1, NewsResponse.class);
         response.setImageUrls(imageUrls);
@@ -114,7 +113,7 @@ public class NewsServiceImpl implements NewsService {
     @Override
     public NewsResponse updateNews(Long id, NewsRequest newsRequest) {
         News news = newsRepository.findById(id)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "News not found with id " + id));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "News not found with id: " + id));
 
         news.setDescription(newsRequest.getDescription());
         news.setPrice(newsRequest.getPrice());
@@ -160,8 +159,9 @@ public class NewsServiceImpl implements NewsService {
     @Override
     public String deleteNews(Long id) {
         News news = newsRepository.findById(id).orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "News not found with id:" + id));
-        if (news.getStatus().equals("DELETED")) throw new ApiException(HttpStatus.BAD_REQUEST, "News already deleted");
+        if (news.getStatus().equals("DELETED")) throw new ApiException(HttpStatus.BAD_REQUEST, "News already delete");
         news.setStatus("DELETED");
+        news.setUpdatedAt(LocalDateTime.now());
         return "News deleted successfuly";
     }
 
@@ -177,35 +177,56 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
-    public ListNewsResponse getAllNews(int pageNo, int pageSize, String sortBy, String sortDir, String keyWord, Long categoryId, String vehicleStatus, BigDecimal maxPrice, String location) {
-        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
+    public ListNewsResponse getAllNews(
+            int pageNo,
+            int pageSize,
+            String sortBy,
+            String sortDir,
+            String keyWord,
+            Long categoryId,
+            String vehicleStatus,
+            BigDecimal maxPrice,
+            String location,
+            String status
+    ) {
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())
+                ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
 
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
         Specification<News> spec = Specification.where(null);
 
+        // ⚙️ Filter theo STATUS
+        if (status != null && !status.isEmpty()) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("status"), status));
+        }
+
         if (vehicleStatus != null && !vehicleStatus.isEmpty()) {
-            spec = spec.and((root, query, cb) -> {
-                return cb.like(cb.lower(root.get("vehicleStatus")), "%" + vehicleStatus.toLowerCase() + "%");
-            });
+            spec = spec.and((root, query, cb) ->
+                    cb.like(cb.lower(root.get("vehicleStatus")), "%" + vehicleStatus.toLowerCase() + "%")
+            );
         }
 
         if (categoryId != null) {
             spec = spec.and((root, query, cb) ->
-                    cb.equal(root.get("category").get("id"), categoryId));
+                    cb.equal(root.get("category").get("id"), categoryId)
+            );
         }
+
         if (maxPrice != null) {
-            spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("price"), maxPrice));
+            spec = spec.and((root, query, cb) ->
+                    cb.lessThanOrEqualTo(root.get("price"), maxPrice)
+            );
         }
+
         if (location != null && !location.isEmpty()) {
-            spec = spec.and((root, query, cb) -> {
-                return cb.like(cb.lower(root.get("location")), "%" + location.toLowerCase() + "%");
-            });
+            spec = spec.and((root, query, cb) ->
+                    cb.like(cb.lower(root.get("location")), "%" + location.toLowerCase() + "%")
+            );
         }
 
         if (keyWord != null && !keyWord.isEmpty()) {
             String keywordLower = "%" + keyWord.toLowerCase() + "%";
-
             spec = spec.and((root, query, cb) -> cb.or(
                     cb.like(cb.lower(root.get("title")), keywordLower),
                     cb.like(cb.lower(root.get("description")), keywordLower),
@@ -213,6 +234,7 @@ public class NewsServiceImpl implements NewsService {
                     cb.like(cb.lower(root.get("vehicleModel")), keywordLower)
             ));
         }
+        spec = spec.and((root, query, cb) -> cb.notEqual(root.get("status"), "DELETED"));
 
 
         Page<NewsResponse> news = newsRepository.findAll(spec, pageable).map(news1 -> {
@@ -221,17 +243,15 @@ public class NewsServiceImpl implements NewsService {
             return response;
         });
 
-        List<NewsResponse> listOfNews = news.getContent();
-
-        List<NewsResponse> content = listOfNews.stream().map(bt -> modelMapper.map(bt, NewsResponse.class)).collect(Collectors.toList());
         ListNewsResponse response = new ListNewsResponse();
-        response.setContent(content);
+        response.setContent(news.getContent());
         response.setPageNo(news.getNumber());
         response.setPageSize(news.getSize());
         response.setTotalElements(news.getTotalElements());
         response.setTotalPages(news.getTotalPages());
         return response;
     }
+
 
     @Override
     public ListNewsResponse getNewsByUser(Long userId, int pageNo, int pageSize, String sortBy, String sortDir) {
@@ -258,6 +278,30 @@ public class NewsServiceImpl implements NewsService {
         response.setTotalPages(news.getTotalPages());
         response.setLast(news.isLast());
         return response;
+    }
+
+    @Override
+    public String approve(Long newId, NewsApproveRequest newsApproveRequest) {
+        News news = newsRepository.findByIdNotDeleted(newId).orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Cant not found news with id: " + newId));
+        if (!newsApproveRequest.getStatus().equalsIgnoreCase("APPROVED") && !newsApproveRequest.getStatus().equalsIgnoreCase("REJECTED")) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Status must be APPROVED/REJECTED");
+        } else {
+            news.setStatus(newsApproveRequest.getStatus());
+            news.setReason(newsApproveRequest.getReason());
+            news.setUpdatedAt(LocalDateTime.now());
+            newsRepository.save(news);
+            return newsApproveRequest.getStatus().toUpperCase() + " successfully";
+        }
+    }
+
+    @Override
+    public Map<String, Long> getStatistics() {
+        Map<String, Long> result = new HashMap<>();
+        result.put("total", newsRepository.count());
+        result.put("pending", newsRepository.countByStatus("PENDING"));
+        result.put("approved", newsRepository.countByStatus("APPROVED"));
+        result.put("rejected", newsRepository.countByStatus("REJECTED"));
+        return result;
     }
 
 }

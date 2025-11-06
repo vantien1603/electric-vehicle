@@ -1,5 +1,6 @@
 package com.thangcayEP.ElectricVehicles.controllers;
 
+import com.thangcayEP.ElectricVehicles.model.payload.request.NewsApproveRequest;
 import com.thangcayEP.ElectricVehicles.model.payload.request.NewsRequest;
 import com.thangcayEP.ElectricVehicles.model.payload.response.ListNewsResponse;
 import com.thangcayEP.ElectricVehicles.model.payload.response.NewsResponse;
@@ -16,6 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/news")
@@ -29,26 +31,28 @@ public class NewsController {
                                         @RequestParam(value = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY) String sortBy,
                                         @RequestParam(value = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION) String sortDir,
                                         @RequestParam(value = "keyWord", required = false) String keyWord,
-                                        @RequestParam(value = "status", required = false) String vehicleStatus,
+                                        @RequestParam(value = "vehicleStatus", required = false) String vehicleStatus,
                                         @RequestParam(value = "category", required = false) Long categoryId,
                                         @RequestParam(value = "maxPrice", required = false) BigDecimal maxPrice,
-                                        @RequestParam(value = "location", required = false) String location){
-        ListNewsResponse response = newsService.getAllNews(pageNo, pageSize, sortBy, sortDir, keyWord, categoryId,vehicleStatus, maxPrice, location);
+                                        @RequestParam(value = "location", required = false) String location,
+                                        @RequestParam(value = "status", required = false) String status) {
+        ListNewsResponse response = newsService.getAllNews(pageNo, pageSize, sortBy, sortDir, keyWord, categoryId, vehicleStatus, maxPrice, location, status);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
     @SecurityRequirement(name = "Bearer Authentication")
     @PostMapping
-    public ResponseEntity<?> createNews (@AuthenticationPrincipal CustomUserDetails userDetails,
-                                         @Valid @ModelAttribute NewsRequest newsRequest){
+    public ResponseEntity<?> createNews(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                        @Valid @ModelAttribute NewsRequest newsRequest) {
         System.out.println(userDetails.getId());
         NewsResponse response = newsService.createNews(userDetails.getId(), newsRequest);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getById(@PathVariable Long id){
+    public ResponseEntity<?> getById(@PathVariable Long id) {
         NewsResponse response = newsService.getNewsById(id);
-        return new ResponseEntity<>(response,HttpStatus.OK);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/user/{userId}")
@@ -62,14 +66,26 @@ public class NewsController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update (@PathVariable Long id, @ModelAttribute NewsRequest newsRequest){
-        NewsResponse response = newsService.updateNews(id,newsRequest);
+    public ResponseEntity<?> update(@PathVariable Long id, @ModelAttribute NewsRequest newsRequest) {
+        NewsResponse response = newsService.updateNews(id, newsRequest);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete (@PathVariable Long id){
+    public ResponseEntity<?> delete(@PathVariable Long id) {
         String response = newsService.deleteNews(id);
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PutMapping("/status/{id}")
+    public ResponseEntity<?> approve(@PathVariable Long id, @RequestBody NewsApproveRequest newsApproveRequest) {
+        String response = newsService.approve(id, newsApproveRequest);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/statistics")
+    public ResponseEntity<Map<String, Long>> getNewsStatistics() {
+        Map<String, Long> stats = newsService.getStatistics();
+        return ResponseEntity.ok(stats);
     }
 }
